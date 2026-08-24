@@ -139,7 +139,8 @@
       try {
         engine = await webllm.CreateWebGPUEngine(SELECTED_MODEL, {
           initProgressCallback: (report) => {
-            statusDisplay.innerText = Loading model: ${Math.round(report.progress * 100)}%;
+            statusDisplay.innerText = "Loading model: " + Math.round(report.progress * 100) + "%";
+        
           }
         });
         statusDisplay.innerText = "Core: 100% Offline Active";
@@ -175,7 +176,7 @@
 
     function appendMessage(text, sender) {
       const wrapper = document.createElement('div');
-      wrapper.className = msg-wrapper ${sender};
+      wrapper.className = 'msg-wrapper ${sender}';
       const msgDiv = document.createElement('div');
       msgDiv.className = 'msg';
       msgDiv.innerText = text;
