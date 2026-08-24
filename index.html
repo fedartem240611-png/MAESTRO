@@ -6,53 +6,107 @@
   <title>MaEstro AI</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    body { background: #000; color: #fff; display: flex; flex-direction: column; height: 100vh; height: -webkit-fill-available; padding: 15px; transition: background 0.3s, color 0.3s; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: #000; color: #fff; display: flex; height: 100vh; height: -webkit-fill-available; overflow: hidden; transition: background 0.3s; }
     html { height: -webkit-fill-available; }
-    
-    header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #111; flex-shrink: 0; }
-    header h1 { font-size: 1.4rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
-    
-    .custom-btn { background: #111; border: 1px solid #222; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; gap: 5px; -webkit-tap-highlight-color: transparent; }
-    .custom-btn span { background: #fff; color: #000; font-size: 0.6rem; padding: 2px 4px; border-radius: 4px; font-weight: 900; }
 
-    .chat-container { flex: 1; overflow-y: auto; margin: 15px 0; padding: 5px; display: flex; flex-direction: column; gap: 12px; -webkit-overflow-scrolling: touch; }
-    .msg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; }
-    .msg.user { background: #111; align-self: flex-end; border: 1px solid #222; color: #eee; }
-    .msg.ai { background: #fff; color: #000; align-self: flex-start; font-weight: 500; }
+    /* Боковая панель (Как в ChatGPT/Claude) */
+    .sidebar { width: 260px; background: #050505; border-right: 1px solid #111; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; flex-shrink: 0; transition: background 0.3s, border-color 0.3s; }
+    .new-chat-btn { width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; text-align: left; margin-bottom: 20px; }
+    .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .history-item { padding: 10px; border-radius: 6px; font-size: 0.85rem; color: #666; cursor: pointer; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+    .history-item.active { background: #111; color: #fff; border: 1px solid #222; }
     
-    .status-bar { font-size: 0.7rem; color: #444; text-align: center; margin-bottom: 8px; flex-shrink: 0; letter-spacing: 0.5px; text-transform: uppercase; }
+    .custom-btn { background: #fff; color: #000; border: none; padding: 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 900; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; }
+    .custom-btn span { background: #000; color: #fff; font-size: 0.6rem; padding: 2px 4px; border-radius: 4px; }
 
-    .input-area { display: flex; gap: 8px; width: 100%; max-width: 500px; margin: 0 auto; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom); }
-    .input-area input { flex: 1; background: #050505; border: 1px solid #222; border-radius: 12px; padding: 14px; color: #fff; font-size: 0.95rem; outline: none; }
-    .input-area input:focus { border-color: #333; }
-    .input-area button { background: #fff; color: #000; border: none; padding: 0 20px; border-radius: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; font-size: 0.85rem; -webkit-tap-highlight-color: transparent; }
+    /* Главная рабочая зона */
+    .main-content { flex: 1; display: flex; flex-direction: column; justify-content: space-between; background: #000; transition: background 0.3s; }
     
-    body.theme-noir { background: #0a0a0a; color: #fff; }
-    body.theme-noir .msg.user { background: #000; border-color: #333; }
-    body.theme-milano { background: #1a1a1a; color: #e5e5e5; }
-    body.theme-milano .msg.user { background: #262626; border-color: #333; }
-    body.theme-milano .custom-btn { background: #262626; }
+    /* Шапка для мобилок */
+    header { display: none; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #111; background: #050505; }
+    header h1 { font-size: 1.2rem; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
+    .menu-toggle { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    /* Контейнер сообщений */
+    .chat-container { flex: 1; overflow-y: auto; padding: 30px 10%; display: flex; flex-direction: column; gap: 24px; -webkit-overflow-scrolling: touch; }
+    .msg-wrapper { display: flex; width: 100%; }
+    .msg-wrapper.user { justify-content: flex-end; }
+    .msg-wrapper.ai { justify-content: flex-start; }
+    .msg { max-width: 70%; padding: 16px 20px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; word-break: break-word; }
+    .msg-wrapper.user .msg { background: #111; border: 1px solid #222; color: #eee; }
+    .msg-wrapper.ai .msg { background: #fff; color: #000; font-weight: 500; }
+    
+    .status-bar { font-size: 0.65rem; color: #333; text-align: center; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* Зона ввода по центру (Стиль ChatGPT) */
+    .input-wrapper { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 20px 24px 20px; flex-shrink: 0; }
+    .input-area { display: flex; background: #050505; border: 1px solid #222; border-radius: 16px; padding: 8px 12px; gap: 10px; align-items: center; }
+    .input-area input { flex: 1; background: transparent; border: none; padding: 12px; color: #fff; font-size: 1rem; outline: none; }
+    .input-area button { background: #fff; color: #000; border: none; min-width: 44px; height: 44px; border-radius: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    
+    /* Темы оформления */
+    body.theme-noir .sidebar { background: #000; border-color: #222; }
+    body.theme-noir .main-content { background: #0a0a0a; }
+    body.theme-noir .msg-wrapper.user .msg { background: #000; border-color: #333; }
+    
+    body.theme-milano { color: #e5e5e5; }
+    body.theme-milano .sidebar { background: #151515; border-color: #262626; }
+    body.theme-milano .main-content { background: #1c1c1c; }
+    body.theme-milano .msg-wrapper.user .msg { background: #262626; border-color: #333; }
+    body.theme-milano .new-chat-btn { background: #262626; border-color: #333; }
+
+    /* Адаптивность под мобилки */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { display: none; }
+      header { display: flex; }
+      .chat-container { padding: 20px 15px; }
+      .msg { max-width: 85%; padding: 12px 16px; }
+      .input-wrapper { padding: 0 15px 15px 15px; }
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>MaEstro</h1>
+  <!-- Боковая панель десктопа -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <button class="new-chat-btn">+ New Secure Session</button>
+      <div class="chat-history">
+        <div class="history-item active">⌥ Operational Intelligence</div>
+        <div class="history-item">⌥ Offline Encryption Core</div>
+        <div class="history-item">⌥ Tactical Blueprint</div>
+      </div>
+    </div>
     <button class="custom-btn" id="custom-toggle">Custom <span>NEW</span></button>
-  </header>
-
-  <div class="chat-container" id="chat">
-    <div class="msg ai">System ready. No servers. No logs. Ask me anything.</div>
   </div>
 
-  <div class="status-bar" id="status">Core status: 100% Offline Active</div>
+  <!-- Главный экран -->
+  <div class="main-content">
+    <!-- Шапка для мобилок -->
+    <header>
+      <h1>MaEstro AI</h1>
+      <button class="custom-btn" id="mobile-custom-toggle" style="width:auto; padding:6px 10px;">Style <span>NEW</span></button>
+    </header>
 
-  <div class="input-area">
-    <input type="text" id="user-input" placeholder="Type a message..." autocomplete="off">
-    <button id="send-btn">Send</button>
+    <!-- Контейнер чата -->
+    <div class="chat-container" id="chat">
+      <div class="msg-wrapper ai">
+        <div class="msg">System initialized. Infrastructure costs: $0.00. Privacy: 100%. Ask me anything.</div>
+      </div>
+    </div>
+
+    <!-- Инпут зона -->
+    <div class="input-wrapper">
+      <div class="status-bar" id="status">Core status: 100% Offline Active</div>
+      <div class="input-area">
+        <input type="text" id="user-input" placeholder="Message MaEstro..." autocomplete="off">
+        <button id="send-btn">➔</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -60,35 +114,45 @@
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
     const customToggle = document.getElementById('custom-toggle');
-    // Кнопка кастомизации жестко переключает фоны на мобилках
+    const mobileCustomToggle = document.getElementById('mobile-custom-toggle');
+
+    // Кастомизация для десктопа и мобилки
     let currentTheme = 0;
-    customToggle.onclick = function(e) {
+    function toggleTheme(e) {
       e.preventDefault();
       const themes = ['', 'theme-noir', 'theme-milano'];
       document.body.className = '';
       currentTheme = (currentTheme + 1) % themes.length;
-      if (themes[currentTheme]) {
-        document.body.classList.add(themes[currentTheme]);
-      }
-    };
+      if (themes[currentTheme]) document.body.classList.add(themes[currentTheme]);
+    }
+    customToggle.onclick = toggleTheme;
+    mobileCustomToggle.onclick = toggleTheme;
 
-    // Рабочая отправка сообщений с авто-скроллом
+    // Логика чата
     function sendMessage() {
       const text = userInput.value.trim();
       if (!text) return;
       userInput.value = '';
       
+      // Юзер
+      const wrapperUser = document.createElement('div');
+      wrapperUser.className = 'msg-wrapper user';
       const userDiv = document.createElement('div');
-      userDiv.className = 'msg user';
+      userDiv.className = 'msg';
       userDiv.innerText = text;
-      chatContainer.appendChild(userDiv);
+      wrapperUser.appendChild(userDiv);
+      chatContainer.appendChild(wrapperUser);
       chatContainer.scrollTop = chatContainer.scrollHeight;
       
+      // ИИ имитация
       setTimeout(() => {
+        const wrapperAi = document.createElement('div');
+        wrapperAi.className = 'msg-wrapper ai';
         const aiDiv = document.createElement('div');
-        aiDiv.className = 'msg ai';
-        aiDiv.innerText = "MaEstro core response loaded locally.";
-        chatContainer.appendChild(aiDiv);
+        aiDiv.className = 'msg';
+        aiDiv.innerText = "MaEstro core response loaded locally. System operational.";
+        wrapperAi.appendChild(aiDiv);
+        chatContainer.appendChild(wrapperAi);
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }, 400);
     }
