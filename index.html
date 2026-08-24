@@ -28,7 +28,7 @@
     .msg { max-width: 70%; padding: 16px 20px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; word-break: break-word; }
     .msg-wrapper.user .msg { background: #111; border: 1px solid #222; color: #eee; }
     .msg-wrapper.ai .msg { background: #fff; color: #000; font-weight: 500; }
-    .status-bar { font-size: 0.65rem; color: #333; text-align: center; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
+    .status-bar { font-size: 0.65rem; color: #555; text-align: center; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
     .input-wrapper { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 20px 24px 20px; flex-shrink: 0; }
     .input-area { display: flex; background: #050505; border: 1px solid #222; border-radius: 16px; padding: 8px 12px; gap: 10px; align-items: center; }
     .input-area input { flex: 1; background: transparent; border: none; padding: 12px; color: #fff; font-size: 1rem; outline: none; }
@@ -83,20 +83,28 @@
       </div>
     </div>
     <div class="input-wrapper">
-      <div class="status-bar" id="status">Core status: 100% Offline Active</div>
+      <div class="status-bar" id="status">Core status: System Boot...</div>
       <div class="input-area">
-        <input type="text" id="user-input" placeholder="Message MaEstro..." autocomplete="off">
-        <button id="send-btn">➔</button>
+        <input type="text" id="user-input" placeholder="Message MaEstro..." autocomplete="off" disabled>
+        <button id="send-btn" disabled>➔</button>
       </div>
     </div>
   </div>
-  <script>
+ <script type="module">
+    import * as webllm from "https://esm.run";
+    
+    const SELECTED_MODEL = "Llama-3-8B-Instruct-q3f16_1-MLC"; 
+    const SYSTEM_PROMPT = "You are MaEstro AI, an elite, 130 IQ offline AI assistant. Вайб: хладнокровный хакер-наставник. Speak in tech slang. Give tactical blueprint solutions.";
+
     const chatContainer = document.getElementById('chat');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
     const customToggle = document.getElementById('custom-toggle');
     const mobileCustomToggle = document.getElementById('mobile-custom-toggle');
     const newSessionBtn = document.getElementById('new-session-btn');
+    const statusDisplay = document.getElementById('status');
+
+    let engine;
 
     let currentTheme = 0;
     function toggleTheme(e) {
@@ -112,7 +120,7 @@
     mobileCustomToggle.onclick = toggleTheme;
 
     newSessionBtn.onclick = function() {
-      chatContainer.innerHTML = '<div class="msg-wrapper ai"><div class="msg">New secure session started. Memory wiped. Ask me anything.</div></div>';
+      chatContainer.innerHTML = '<div class="msg-wrapper ai"><div class="msg">New secure session started. Memory wiped.</div></div>';
     };
 
     document.getElementById('hist-1').onclick = function() { loadHist(this); };
@@ -123,37 +131,63 @@
       const activeItem = document.querySelector('.history-item.active');
       if(activeItem) activeItem.classList.remove('active');
       el.classList.add('active');
-      chatContainer.innerHTML = '<div class="msg-wrapper ai"><div class="msg">Loaded secure data branch: ' + el.innerText.replace('⌥ ', '') + '. Cache state: intact.</div></div>';
+      chatContainer.innerHTML = '<div class="msg-wrapper ai"><div class="msg">Loaded secure cache data branch.</div></div>';
     }
 
-    function sendMessage() {
+    async function initAI() {
+      statusDisplay.innerText = "Core: Connecting WebGPU & downloading model (~1.5GB)...";
+      try {
+        engine = await webllm.CreateWebGPUEngine(SELECTED_MODEL, {
+          initProgressCallback: (report) => {
+            statusDisplay.innerText = Loading model: ${Math.round(report.progress * 100)}%;
+          }
+        });
+        statusDisplay.innerText = "Core: 100% Offline Active";
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+      } catch (err) {
+        statusDisplay.innerText = "Error: WebGPU unsupported on this browser. Try on iPhone.";
+        console.error(err);
+      }
+    }
+
+    async function handleSend() {
       const text = userInput.value.trim();
-      if (!text) return;
+      if (!text || !engine) return;
+
       userInput.value = '';
-      
-      const wrapperUser = document.createElement('div');
-      wrapperUser.className = 'msg-wrapper user';
-      const userDiv = document.createElement('div');
-      userDiv.className = 'msg';
-      userDiv.innerText = text;
-      wrapperUser.appendChild(userDiv);
-      chatContainer.appendChild(wrapperUser);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-      
-      setTimeout(() => {
-        const wrapperAi = document.createElement('div');
-        wrapperAi.className = 'msg-wrapper ai';
-        const aiDiv = document.createElement('div');
-        aiDiv.className = 'msg';
-        aiDiv.innerText = "MaEstro core response loaded locally. System operational.";
-        wrapperAi.appendChild(aiDiv);
-        chatContainer.appendChild(wrapperAi);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }, 400);
+      appendMessage(text, 'user');
+      statusDisplay.innerText = "MaEstro is thinking (Local GPU processing)...";
+
+      try {
+        const messages = [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: text }
+        ];
+        const reply = await engine.chat.completions.create({ messages });
+        appendMessage(reply.choices.message.content, 'ai');
+        statusDisplay.innerText = "Core: 100% Offline Active";
+      } catch (e) {
+        statusDisplay.innerText = "Generation error.";
+        console.error(e);
+      }
     }
 
-    sendBtn.onclick = function(e) { e.preventDefault(); sendMessage(); };
-    userInput.onkeypress = function(e) { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); } };
+    function appendMessage(text, sender) {
+      const wrapper = document.createElement('div');
+      wrapper.className = msg-wrapper ${sender};
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'msg';
+      msgDiv.innerText = text;
+      wrapper.appendChild(msgDiv);
+      chatContainer.appendChild(wrapper);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    sendBtn.onclick = function(e) { e.preventDefault(); handleSend(); };
+    userInput.onkeypress = function(e) { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } };
+
+    initAI();
   </script>
 </body>
 </html>
