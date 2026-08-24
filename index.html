@@ -8,29 +8,19 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background: #000; color: #fff; display: flex; height: 100vh; height: -webkit-fill-available; overflow: hidden; transition: background 0.3s; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #000; color: #fff; display: flex; height: 100vh; height: -webkit-fill-available; overflow: hidden; transition: background 0.4s ease, color 0.4s ease; }
     html { height: -webkit-fill-available; }
-
-    /* Боковая панель (Как в ChatGPT/Claude) */
-    .sidebar { width: 260px; background: #050505; border-right: 1px solid #111; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; flex-shrink: 0; transition: background 0.3s, border-color 0.3s; }
-    .new-chat-btn { width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; text-align: left; margin-bottom: 20px; }
+    .sidebar { width: 260px; background: #050505; border-right: 1px solid #111; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; flex-shrink: 0; transition: background 0.4s ease, border-color 0.4s ease; }
+    .new-chat-btn { width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; text-align: left; margin-bottom: 20px; transition: background 0.2s; }
     .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .history-item { padding: 10px; border-radius: 6px; font-size: 0.85rem; color: #666; cursor: pointer; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
     .history-item.active { background: #111; color: #fff; border: 1px solid #222; }
-    
     .custom-btn { background: #fff; color: #000; border: none; padding: 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 900; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; }
     .custom-btn span { background: #000; color: #fff; font-size: 0.6rem; padding: 2px 4px; border-radius: 4px; }
-
-    /* Главная рабочая зона */
-    .main-content { flex: 1; display: flex; flex-direction: column; justify-content: space-between; background: #000; transition: background 0.3s; }
-    
-    /* Шапка для мобилок */
+    .main-content { flex: 1; display: flex; flex-direction: column; justify-content: space-between; background: #000; transition: background 0.4s ease; }
     header { display: none; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #111; background: #050505; }
     header h1 { font-size: 1.2rem; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
-    .menu-toggle { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
-
-    /* Контейнер сообщений */
     .chat-container { flex: 1; overflow-y: auto; padding: 30px 10%; display: flex; flex-direction: column; gap: 24px; -webkit-overflow-scrolling: touch; }
     .msg-wrapper { display: flex; width: 100%; }
     .msg-wrapper.user { justify-content: flex-end; }
@@ -38,68 +28,60 @@
     .msg { max-width: 70%; padding: 16px 20px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; word-break: break-word; }
     .msg-wrapper.user .msg { background: #111; border: 1px solid #222; color: #eee; }
     .msg-wrapper.ai .msg { background: #fff; color: #000; font-weight: 500; }
-    
     .status-bar { font-size: 0.65rem; color: #333; text-align: center; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
-
-    /* Зона ввода по центру (Стиль ChatGPT) */
     .input-wrapper { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 20px 24px 20px; flex-shrink: 0; }
     .input-area { display: flex; background: #050505; border: 1px solid #222; border-radius: 16px; padding: 8px 12px; gap: 10px; align-items: center; }
     .input-area input { flex: 1; background: transparent; border: none; padding: 12px; color: #fff; font-size: 1rem; outline: none; }
     .input-area button { background: #fff; color: #000; border: none; min-width: 44px; height: 44px; border-radius: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    
-    /* Темы оформления */
-    body.theme-noir .sidebar { background: #000; border-color: #222; }
-    body.theme-noir .main-content { background: #0a0a0a; }
-    body.theme-noir .msg-wrapper.user .msg { background: #000; border-color: #333; }
-    
-    body.theme-milano { color: #e5e5e5; }
-    body.theme-milano .sidebar { background: #151515; border-color: #262626; }
-    body.theme-milano .main-content { background: #1c1c1c; }
-    body.theme-milano .msg-wrapper.user .msg { background: #262626; border-color: #333; }
-    body.theme-milano .new-chat-btn { background: #262626; border-color: #333; }
+    body.theme-ultramarine .sidebar { background: #001233; border-color: #001f54; }
+    body.theme-ultramarine .main-content { background: #001845; }
+    body.theme-ultramarine .msg-wrapper.user .msg { background: #001f54; border-color: #002855; }
+    body.theme-ultramarine .input-area { background: #001233; border-color: #001f54; }
+    body.theme-ultramarine .new-chat-btn { background: #001233; border-color: #001f54; }
+    body.theme-ultramarine header { background: #001233; border-color: #001f54; }
+    body.theme-ultramarine .status-bar { color: #002855; }
 
-    /* Адаптивность под мобилки */
-    @media (max-width: 768px) {
-      body { flex-direction: column; }
-      .sidebar { display: none; }
-      header { display: flex; }
-      .chat-container { padding: 20px 15px; }
-      .msg { max-width: 85%; padding: 12px 16px; }
-      .input-wrapper { padding: 0 15px 15px 15px; }
-    }
+    body.theme-orange { color: #1a0f00; }
+    body.theme-orange .sidebar { background: #ffebd6; border-color: #ffd1a4; }
+    body.theme-orange .main-content { background: #fff5eb; }
+    body.theme-orange .msg-wrapper.user .msg { background: #ffd1a4; border-color: #ffb775; color: #1a0f00; }
+    body.theme-orange .msg-wrapper.ai .msg { background: #1a0f00; color: #fff5eb; }
+    body.theme-orange .input-area { background: #ffebd6; border-color: #ffd1a4; }
+    body.theme-orange .input-area input { color: #1a0f00; }
+    body.theme-orange .input-area button { background: #1a0f00; color: #fff5eb; }
+    body.theme-orange .new-chat-btn { background: #ffebd6; border-color: #ffd1a4; color: #1a0f00; }
+    body.theme-orange header { background: #ffebd6; border-color: #ffd1a4; color: #1a0f00; }
+    body.theme-orange .history-item { color: #80664d; }
+    body.theme-orange .history-item.active { background: #ffd1a4; color: #1a0f00; border-color: #ffb775; }
+    body.theme-orange .custom-btn { background: #1a0f00; color: #fff5eb; }
+    body.theme-orange .custom-btn span { background: #fff5eb; color: #1a0f00; }
+    body.theme-orange .status-bar { color: #ffb775; }
+
+    @media (max-width: 768px) { body { flex-direction: column; } .sidebar { display: none; } header { display: flex; } .chat-container { padding: 20px 15px; } .msg { max-width: 85%; padding: 12px 16px; } .input-wrapper { padding: 0 15px 15px 15px; } }
   </style>
 </head>
 <body>
-
-  <!-- Боковая панель десктопа -->
   <div class="sidebar" id="sidebar">
     <div>
-      <button class="new-chat-btn">+ New Secure Session</button>
+      <button class="new-chat-btn" id="new-session-btn">+ New Secure Session</button>
       <div class="chat-history">
-        <div class="history-item active">⌥ Operational Intelligence</div>
-        <div class="history-item">⌥ Offline Encryption Core</div>
-        <div class="history-item">⌥ Tactical Blueprint</div>
+        <div class="history-item active" id="hist-1">⌥ Operational Intelligence</div>
+        <div class="history-item" id="hist-2">⌥ Offline Encryption Core</div>
+        <div class="history-item" id="hist-3">⌥ Tactical Blueprint</div>
       </div>
     </div>
     <button class="custom-btn" id="custom-toggle">Custom <span>NEW</span></button>
   </div>
-
-  <!-- Главный экран -->
   <div class="main-content">
-    <!-- Шапка для мобилок -->
     <header>
-      <h1>MaEstro AI</h1>
+      <h1>MaEstro</h1>
       <button class="custom-btn" id="mobile-custom-toggle" style="width:auto; padding:6px 10px;">Style <span>NEW</span></button>
     </header>
-
-    <!-- Контейнер чата -->
     <div class="chat-container" id="chat">
       <div class="msg-wrapper ai">
         <div class="msg">System initialized. Infrastructure costs: $0.00. Privacy: 100%. Ask me anything.</div>
       </div>
     </div>
-
-    <!-- Инпут зона -->
     <div class="input-wrapper">
       <div class="status-bar" id="status">Core status: 100% Offline Active</div>
       <div class="input-area">
@@ -108,33 +90,47 @@
       </div>
     </div>
   </div>
-
   <script>
     const chatContainer = document.getElementById('chat');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
     const customToggle = document.getElementById('custom-toggle');
     const mobileCustomToggle = document.getElementById('mobile-custom-toggle');
+    const newSessionBtn = document.getElementById('new-session-btn');
 
-    // Кастомизация для десктопа и мобилки
     let currentTheme = 0;
     function toggleTheme(e) {
-      e.preventDefault();
-      const themes = ['', 'theme-noir', 'theme-milano'];
+      if(e) e.preventDefault();
+      const themes = ['', 'theme-ultramarine', 'theme-orange'];
       document.body.className = '';
       currentTheme = (currentTheme + 1) % themes.length;
-      if (themes[currentTheme]) document.body.classList.add(themes[currentTheme]);
+      if (themes[currentTheme]) {
+        document.body.classList.add(themes[currentTheme]);
+      }
     }
     customToggle.onclick = toggleTheme;
     mobileCustomToggle.onclick = toggleTheme;
 
-    // Логика чата
+    newSessionBtn.onclick = function() {
+      chatContainer.innerHTML = '<div class="msg-wrapper ai"><div class="msg">New secure session started. Memory wiped. Ask me anything.</div></div>';
+    };
+
+    document.getElementById('hist-1').onclick = function() { loadHist(this); };
+    document.getElementById('hist-2').onclick = function() { loadHist(this); };
+    document.getElementById('hist-3').onclick = function() { loadHist(this); };
+
+    function loadHist(el) {
+      const activeItem = document.querySelector('.history-item.active');
+      if(activeItem) activeItem.classList.remove('active');
+      el.classList.add('active');
+      chatContainer.innerHTML = '<div class="msg-wrapper ai"><div class="msg">Loaded secure data branch: ' + el.innerText.replace('⌥ ', '') + '. Cache state: intact.</div></div>';
+    }
+
     function sendMessage() {
       const text = userInput.value.trim();
       if (!text) return;
       userInput.value = '';
       
-      // Юзер
       const wrapperUser = document.createElement('div');
       wrapperUser.className = 'msg-wrapper user';
       const userDiv = document.createElement('div');
@@ -144,7 +140,6 @@
       chatContainer.appendChild(wrapperUser);
       chatContainer.scrollTop = chatContainer.scrollHeight;
       
-      // ИИ имитация
       setTimeout(() => {
         const wrapperAi = document.createElement('div');
         wrapperAi.className = 'msg-wrapper ai';
