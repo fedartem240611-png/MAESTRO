@@ -90,7 +90,8 @@
       </div>
     </div>
   </div>
- <script>
+<script type="module">
+    import { createWebGPUEngine } from "https://esm.run/npm/@mlc-ai/web-llm|";
     
     const SELECTED_MODEL = "Llama-3-8B-Instruct-q3f16_1-MLC"; 
     const SYSTEM_PROMPT = "You are MaEstro AI, an elite, 130 IQ offline AI assistant. Вайб: хладнокровный хакер-наставник. Speak in tech slang. Give tactical blueprint solutions.";
@@ -136,7 +137,7 @@
     async function initAI() {
       statusDisplay.innerText = "Core: Connecting WebGPU & downloading model (~1.5GB)...";
       try {
-        engine = await webllm.CreateWebGPUEngine(SELECTED_MODEL, {
+        engine = await createWebGPUEngine(SELECTED_MODEL, {
           initProgressCallback: (report) => {
             statusDisplay.innerText = "Loading model: " + Math.round(report.progress * 100) + "%";
         
